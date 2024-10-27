@@ -3,8 +3,6 @@ const createRoomButton = document.getElementById("create-room-button");
 /** @type {HTMLInputElement | null} */
 const URLInput = document.getElementById("youtube-video-url");
 
-createRoomButton.disabled = true;
-
 URLInput.addEventListener("input", () => {
 	createRoomButton.disabled = URLInput.value.trim() === "";
 });
@@ -25,6 +23,7 @@ createRoomButton.addEventListener("click", async (e) => {
 		});
 
 		if (res.ok) {
+			/** @type {{pathname: string}} data */
 			const data = await res.json();
 			window.location.href = data.pathname;
 		} else {

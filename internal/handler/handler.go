@@ -33,6 +33,7 @@ func CreateRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 
 	var start, end int
 	for i := len(body.VideoURL) - 1; i >= 0; i-- {
@@ -45,9 +46,16 @@ func CreateRoom(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	videoID := body.VideoURL[start:end]
+	if videoID == "" {
+		logger.Error.Println("video ID not found")
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
 	id := uuid.NewString()
 
-	res := map[string]string{"pathname": fmt.Sprintf("/rooms/%s?videoid=%s", id, body.VideoURL[start:end])}
+	res := map[string]string{"pathname": fmt.Sprintf("/rooms/%s?videoid=%s", id, videoID)}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res); err != nil {

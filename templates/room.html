@@ -4,15 +4,13 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width" />
-	<link rel="stylesheet" href="/lite-yt-embed.css" />
 	<title>Room</title>
+	<link rel="stylesheet" href="/lite-yt-embed.css" />
 </head>
 
 <body>
 	<lite-youtube videoid="{{ .VideoID }}" js-api></lite-youtube>
-
-	<script src="/lite-yt-embed.js"></script>
-	<script src="/room.js"></script>
+	<script type="module" src="/room.js"></script>
 </body>
 
 </html>

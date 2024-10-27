@@ -1,46 +1,45 @@
-async function init() {
-	/** @typedef {{action: "play" | "pause" | "sync", time: number}} MessageData */
+import "./lite-yt-embed.js";
 
+async function init() {
+	/** @typedef {{action: "play" | "pause", time: number}} Message */
+
+	const protocol = window.location.protocol === "https" ? "wss" : "ws";
 	const conn = new WebSocket(
-		`ws://${window.location.host}/ws/${window.location.pathname.split("/").at(-1)}`,
+		`${protocol}://${window.location.host}/ws/${window.location.pathname.split("/").at(-1)}`,
 	);
 
-	/** @param {MessageData} data  */
-	function send(data) {
-		console.log("Sending:", data);
-		conn.send(JSON.stringify(data));
+	const player = await document.querySelector("lite-youtube").getYTPlayer();
+	player.seekTo(0, true);
+	player.pauseVideo();
+
+	/** @type {number | undefined} prevTime */
+	let prevTime = undefined;
+
+	/** @param {Message} msg */
+	function send(msg) {
+		conn.send(JSON.stringify(msg));
 	}
 
-	conn.addEventListener("open", () => {
-		send({
-			action: "sync",
-			time: 0,
-		});
-	});
-
-	const player = await document.querySelector("lite-youtube").getYTPlayer();
-
-	let isRemoteUpdate = false;
-
 	player.addEventListener("onStateChange", (e) => {
-		if (!isRemoteUpdate) {
-			switch (e.data) {
-				case 1:
-					send({ action: "play", time: player.getCurrentTime() });
-					break;
-				case 2:
-					send({ action: "pause", time: player.getCurrentTime() });
-					break;
-			}
+		const time = player.getCurrentTime();
+
+		if (prevTime && Math.abs(prevTime - time) < 1) return;
+
+		switch (e.data) {
+			case 1:
+				send({ action: "play", time });
+				break;
+			case 2:
+				send({ action: "pause", time });
+				break;
 		}
 	});
 
 	conn.addEventListener("message", (e) => {
-		/** @type {MessageData} msg */
+		/** @type {Message} msg */
 		const msg = JSON.parse(e.data);
-		console.log("Received:", msg);
 
-		isRemoteUpdate = true;
+		prevTime = msg.time;
 
 		switch (msg.action) {
 			case "play":
@@ -51,15 +50,11 @@ async function init() {
 				player.seekTo(msg.time, true);
 				player.pauseVideo();
 				break;
-			case "sync":
-				player.seekTo(msg.time, true);
-				player.pauseVideo();
-				break;
 		}
+	});
 
-		setTimeout(() => {
-			isRemoteUpdate = false;
-		}, 100);
+	conn.addEventListener("error", (e) => {
+		console.log("websocket error:", e);
 	});
 }
 

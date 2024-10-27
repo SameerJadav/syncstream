@@ -165,7 +165,8 @@ class LiteYTEmbed extends HTMLElement {
 				videoId: this.videoId,
 				playerVars: paramsObj,
 				events: {
-					onReady: (_event) => {
+					onReady: (event) => {
+						event.target.playVideo();
 						resolve(player);
 					},
 				},
@@ -184,6 +185,7 @@ class LiteYTEmbed extends HTMLElement {
 
 	getParams() {
 		const params = new URLSearchParams(this.getAttribute("params") || []);
+		params.append("autoplay", "1");
 		params.append("playsinline", "1");
 		return params;
 	}
@@ -210,7 +212,7 @@ class LiteYTEmbed extends HTMLElement {
 		// No encoding necessary as [title] is safe. https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html#:~:text=Safe%20HTML%20Attributes%20include
 		iframeEl.title = this.playLabel;
 		iframeEl.allow =
-			"accelerometer; encrypted-media; gyroscope; picture-in-picture";
+			"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
 		iframeEl.allowFullscreen = true;
 		// AFAIK, the encoding here isn't necessary for XSS, but we'll do it only because this is a URL
 		// https://stackoverflow.com/q/64959723/89484
