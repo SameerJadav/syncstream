@@ -3,7 +3,7 @@ import "./lite-yt-embed.js";
 async function init() {
 	/** @typedef {{action: "play" | "pause", time: number}} Message */
 
-	const protocol = window.location.protocol === "https" ? "wss" : "ws";
+	const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 	const conn = new WebSocket(
 		`${protocol}://${window.location.host}/ws/${window.location.pathname.split("/").at(-1)}`,
 	);
