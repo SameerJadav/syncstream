@@ -11,7 +11,7 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	mux.Handle("/", http.FileServer(http.Dir("./assets")))
+	mux.Handle("/", handler.ServeStaticFiles())
 
 	mux.HandleFunc("POST /rooms", handler.CreateRoom)
 	mux.HandleFunc("/rooms/{id}", handler.JoinRoom)

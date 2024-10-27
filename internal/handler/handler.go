@@ -2,8 +2,10 @@ package handler
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"text/template"
 
@@ -18,6 +20,22 @@ type Room struct {
 }
 
 var rooms = make(map[string]*Room)
+
+//go:embed assets
+var assets embed.FS
+
+//go:embed templates/room.html
+var roomTmpl embed.FS
+
+func ServeStaticFiles() http.Handler {
+	fsys, err := fs.Sub(assets, "assets")
+	if err != nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		})
+	}
+	return http.FileServerFS(fsys)
+}
 
 func CreateRoom(w http.ResponseWriter, r *http.Request) {
 	ct := r.Header.Get("Content-Type")
@@ -152,7 +170,7 @@ func UpgradeConnection(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderRoom(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("./templates/room.html")
+	tmpl, err := template.ParseFS(roomTmpl, "templates/room.html")
 	if err != nil {
 		logger.Error.Printf("failed to parse template file: %v\n", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
